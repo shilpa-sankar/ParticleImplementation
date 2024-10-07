@@ -73,7 +73,7 @@ export function createThreeJSObject(container) {
   const loader = new GLTFLoader();
   // Load the GLTF model (sunglass)
   loader.load(
-    'http://localhost:5173/nyra_woman_warrior.glb',  // Path to the GLTF file
+    'https://particle-implementation.vercel.app/nyra_woman_warrior.glb',  // Path to the GLTF file
   
     // Called when the model is loaded
     function (gltf) {
@@ -96,7 +96,7 @@ export function createThreeJSObject(container) {
   );
 
   // loader for petal texture
-  loader.load('http://localhost:5173/cherry_blossom_petal.glb', (gltf) => {
+  loader.load('https://particle-implementation.vercel.app/cherry_blossom_petal.glb', (gltf) => {
     const petalModel = gltf.scene;
 
     // Adjust the scale of the petal
@@ -127,7 +127,7 @@ export function createThreeJSObject(container) {
 
   // load a sound and set it as the Audio object's buffer
   const audioLoader = new THREE.AudioLoader();
-  audioLoader.load('http://localhost:5173/audio1.mp3', function (buffer) {
+  audioLoader.load('https://particle-implementation.vercel.app/audio1.mp3', function (buffer) {
     sound.setBuffer(buffer);
     sound.setLoop(true);
     sound.setVolume(0.5);
