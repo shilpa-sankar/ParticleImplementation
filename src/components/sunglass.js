@@ -133,10 +133,6 @@ export function createThreeJSObject(container) {
     sound.setVolume(0.5);
   });
 
-  // drag controls
-  const dragControls = new DragControls([group], camera, renderer.domElement);
-  dragControls.transformGroup = true;
-
   // access the store 
   const userStore = useUserStore();
 
