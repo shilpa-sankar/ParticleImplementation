@@ -1,17 +1,25 @@
 <template>
   <div ref="cubeContainer" class="cube-container"></div>
+  <div id="info">
+    <button type="button" class="button" id="playbutton" > {{ userStore.isPlaying ? 'Pause' : 'Play' }}</button>
+  </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { createThreeJSCube } from '../components/sunglass'; // Adjust the path if necessary
+import { createThreeJSObject } from '../components/sunglass'; // Adjust the path if necessary
+import { useUserStore } from '../components/userStore';
 
 const cubeContainer = ref(null);
+const userStore = useUserStore();
 
 onMounted(() => {
   // Call the function and pass the DOM element where the Three.js scene should be rendered
-  createThreeJSCube(cubeContainer.value);
+  createThreeJSObject(cubeContainer.value);
+
 });
+
+
 </script>
 
 <style>
@@ -23,8 +31,31 @@ onMounted(() => {
   overflow: hidden;
   }
       
-   #cubeContainer {
+  #cubeContainer {
     width: 100vw;
-    height: 100vh;
-    }
+    height: 80vh;
+  }
+
+  #info {
+	position: absolute;
+	top: 10px;
+	width: 100%;
+	text-align: center;
+	z-index: 100;
+	display:block;
+  }
+
+  .button {
+  background-color: #04AA6D;
+  border: none;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 4px 2px;
+  cursor: pointer;
+  width: 4vw;
+  height: 3vh;
+  }
 </style>

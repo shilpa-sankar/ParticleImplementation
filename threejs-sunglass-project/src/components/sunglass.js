@@ -1,17 +1,17 @@
-// src/threejs/threeCube.js
 import * as THREE from 'three';
-import { DragControls } from 'three/examples/jsm/controls/DragControls'; // Make sure you include DragControls
+import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { useUserStore } from './userStore';
 
-export function createThreeJSCube(container) {
+export function createThreeJSObject(container) {
   // Scene
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x615b5c);  // Example: light blue = 0xa0d3de;
+  scene.background = new THREE.Color(0x7a202d);  // Example: light blue = 0xa0d3de;
 
   // Camera
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.z = 5;
+  camera.position.z = 4;
+  camera.position.y = 2;
 
   // Renderer
   const renderer = new THREE.WebGLRenderer();
@@ -22,12 +22,12 @@ export function createThreeJSCube(container) {
   const light = new THREE.AmbientLight(0xffffff, 1);
   light.position.set(5, 10, 7.5);
   scene.add(light);
-
+  
+  // creating group for model 
   const group  = new THREE.Group();
 
-  // const orbitControls = new OrbitControls(camera,renderer.domElement);
-  // orbitControls.enableDamping = true;
-  // orbitControls.dampingFactor = 0.25;
+  // creating group for petals
+  const petalsGroup = new THREE.Group();
 
   // Create a particle system for a cloud-like fog around the object 
   const particleCount =10000;
@@ -36,7 +36,13 @@ export function createThreeJSCube(container) {
   const initialPositions = []; 
   const sizes = [];
 
+  /**
+   * 
+   * @param {radius of sphere} radius 
+   * @returns {coordinates} x,y,z
+   */
   function randomInSphere(radius) {
+    // u & v are random values within 0 to 1
     const u = Math.random();
     const v = Math.random();
     const theta = 2 * Math.PI * u;
@@ -67,38 +73,30 @@ export function createThreeJSCube(container) {
   const loader = new GLTFLoader();
   // Load the GLTF model (sunglass)
   loader.load(
-    'http://localhost:5174/vibrant.glb',  // Path to the GLTF file
+    'http://localhost:5173/nyra_woman_warrior.glb',  // Path to the GLTF file
   
     // Called when the model is loaded
     function (gltf) {
       const loadedModel = gltf.scene;
-      console.log('Loaded GLTF scene:', loadedModel);
   
       // Adjust the model's scale and position if necessary
-      loadedModel.scale.set(2, 2, 1);  // Modify the scale if needed
+      loadedModel.scale.set(0.1, 0.1, 0.1);  // Modify the scale if needed
       loadedModel.position.set(0, 0, 0);  // Center the model
 
       // Add the loaded model to the group
       group.add(loadedModel);
       scene.add(group);
 
-      // Log to confirm the model is added
-      console.log('Model added to the scene: ', scene);
     },
   
-    // Called during the loading process
-    function (xhr) {
-      console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-  
-    // Called when an error occurs
+      // Called when an error occurs
     function (error) {
       console.error('An error occurred while loading the GLTF model:', error);
     }
   );
 
   // loader for petal texture
-  loader.load('http://localhost:5174/cherry_blossom_petal.glb', (gltf) => {
+  loader.load('http://localhost:5173/cherry_blossom_petal.glb', (gltf) => {
     const petalModel = gltf.scene;
 
     // Adjust the scale of the petal
@@ -113,25 +111,50 @@ export function createThreeJSCube(container) {
       // Random rotation for each petal
       petalClone.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
 
-      group.add(petalClone);
+      petalsGroup.add(petalClone);
       petalObjects.push(petalClone);  // Store each petal for animation
     }
 
-    scene.add(group);
+    scene.add(petalsGroup);
   });
 
- 
+  // create an AudioListener and add it to the camera
+  const listener = new THREE.AudioListener();
+  camera.add(listener);
+
+  // create a global audio source
+  const sound = new THREE.Audio(listener);
+
+  // load a sound and set it as the Audio object's buffer
+  const audioLoader = new THREE.AudioLoader();
+  audioLoader.load('http://localhost:5173/audio1.mp3', function (buffer) {
+    sound.setBuffer(buffer);
+    sound.setLoop(true);
+    sound.setVolume(0.5);
+  });
+
+  // drag controls
   const dragControls = new DragControls([group], camera, renderer.domElement);
   dragControls.transformGroup = true;
 
-  // dragControls.addEventListener('dragstart', function () {
-  //   // orbitControls.enabled = false;  // Disable OrbitControls during drag
-  // });
+  // access the store 
+  const userStore = useUserStore();
 
-  // dragControls.addEventListener('dragend', function () {
-  //   // orbitControls.enabled = true;   // Enable OrbitControls after drag ends
-  // });
- 
+  // access the play button from vue file (html) through its id 
+  const playButton = document.getElementById("playbutton");
+
+  // adding conditions for button to do play & pause
+  playButton.addEventListener('click', () => {
+    if (userStore.isPlaying) {
+      sound.pause();
+      userStore.togglePlayPause(false);
+    } else {
+      console.log("play")
+      sound.play();
+      userStore.togglePlayPause(true)
+    }
+  });
+
   // Animation loop
   const animate = () => {
     requestAnimationFrame(animate);
@@ -142,7 +165,8 @@ export function createThreeJSCube(container) {
       petal.rotation.x += Math.sin(elapsedTime + index) * 0.005;  // Small oscillating motion on the X axis
     });
 
-    group.rotation.y += 0.005;
+    //rotating the petals group in y direction
+    petalsGroup.rotation.y += 0.005;
     renderer.render(scene, camera);
 
   };
